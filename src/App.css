@@ -1,0 +1,1758 @@
+/* ==========================
+   RESET
+========================== */
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+
+html{
+    scroll-behavior:smooth;
+}
+
+
+body{
+
+    background:#0c0b09;
+    color:#f4efe6;
+
+    font-family:"Inter", sans-serif;
+
+    overflow-x:hidden;
+
+}
+
+
+img{
+    width:100%;
+    display:block;
+}
+
+
+button{
+
+    border:none;
+    background:none;
+
+    cursor:pointer;
+
+    font-family:inherit;
+
+}
+
+
+
+/* ==========================
+   VARIABLES
+========================== */
+
+
+:root{
+
+    --black:#0c0b09;
+
+    --dark:#15130f;
+
+    --cream:#f4efe6;
+
+    --gold:#b9975b;
+
+    --gold-light:#d1b47a;
+
+    --gray:#a7a39c;
+
+}
+
+
+/* ==========================
+   GLOBAL
+========================== */
+
+
+section{
+
+    padding:120px 8%;
+
+}
+
+
+.subtitle{
+
+    color:var(--gold);
+
+    font-size:12px;
+
+    letter-spacing:4px;
+
+    text-transform:uppercase;
+
+    margin-bottom:25px;
+
+}
+
+
+
+h1,
+h2,
+h3{
+
+    font-family:"Playfair Display", serif;
+
+    font-weight:400;
+
+}
+
+
+
+h2{
+
+    font-size:clamp(40px,5vw,70px);
+
+    line-height:1.1;
+
+}
+
+
+
+
+/* ==========================
+   NAVBAR
+========================== */
+
+
+.navbar{
+
+  position:relative;
+
+    width:100%;
+
+    padding:40px 8%;
+
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+
+
+}
+
+
+.navbar::after{
+
+    content:"";
+
+    position:absolute;
+
+    bottom:0;
+
+    left:8%;
+
+    right:8%;
+
+    height:1px;
+
+    background:rgba(185,151,91,.25);
+
+}
+
+
+.logo{
+
+
+    display:flex;
+
+    flex-direction:column;
+
+
+    font-family:"Playfair Display",serif;
+
+    font-size:28px;
+
+    letter-spacing:3px;
+
+
+}
+
+
+
+.logo span{
+
+
+    font-family:"Inter",sans-serif;
+
+    font-size:10px;
+
+    letter-spacing:5px;
+
+    color:var(--gold);
+
+}
+
+
+
+.nav-links{
+
+
+    display:flex;
+
+    gap:45px;
+
+    list-style:none;
+
+
+}
+
+
+
+.nav-links li{
+
+
+    color:var(--cream);
+
+    font-size:14px;
+
+    letter-spacing:1px;
+
+
+    cursor:pointer;
+
+    transition:.3s;
+
+
+}
+
+
+.nav-links li:hover{
+
+
+    color:var(--gold);
+
+
+}
+
+
+
+.cta{
+
+    padding:15px 35px;
+
+    border:1px solid var(--gold);
+
+    color:var(--cream);
+
+    text-transform:uppercase;
+
+    letter-spacing:2px;
+
+    text-decoration:none;
+
+    display:inline-block;
+
+    transition:.4s;
+
+}
+
+
+
+.cta:hover{
+
+    background:var(--gold);
+
+    color:var(--black);
+
+}
+
+
+
+
+/* ==========================
+   HERO
+========================== */
+
+
+.hero{
+
+
+    min-height:100vh;
+
+
+    display:grid;
+
+    grid-template-columns:1fr 1fr;
+
+
+    align-items:center;
+
+
+    gap:80px;
+
+
+
+}
+
+
+
+
+.hero-content{
+
+
+    max-width:600px;
+
+
+}
+
+
+
+.hero h1{
+
+
+    font-size:clamp(60px,7vw,110px);
+
+    line-height:.95;
+
+
+    margin-bottom:35px;
+
+
+}
+
+
+
+.hero p:not(.subtitle){
+
+
+    color:var(--gray);
+
+
+    max-width:420px;
+
+
+    line-height:1.8;
+
+
+    margin-bottom:45px;
+
+
+}
+
+
+
+.hero-image{
+
+
+    height:750px;
+
+
+    background:#191713;
+
+
+    position:relative;
+
+
+    overflow:hidden;
+
+
+}
+
+.hero-image img{
+
+    width:100%;
+    height:100%;
+
+    object-fit:cover;
+
+    object-position:center;
+
+}
+
+
+
+/*
+ FOTO HERO
+
+ Inserire qui:
+ immagine principale barberia
+ o barbiere al lavoro
+
+*/
+
+
+
+.hero-image::after{
+
+
+    content:"";
+
+
+    position:absolute;
+
+
+    inset:0;
+
+
+    border:1px solid rgba(185,151,91,.4);
+
+
+    transform:translate(20px,20px);
+
+
+}
+
+
+
+/* ==========================
+   PHILOSOPHY
+========================== */
+
+
+.philosophy{
+
+
+    display:grid;
+
+
+    grid-template-columns:1fr 1fr;
+
+
+    gap:100px;
+
+
+    align-items:center;
+
+
+}
+
+
+
+.philosophy-image{
+
+    height:650px;
+
+    background:#171511;
+
+    overflow:hidden;
+
+}
+
+
+.philosophy-image img{
+
+    width:100%;
+    height:100%;
+
+    object-fit:cover;
+
+    display:block;
+
+}
+
+/*
+ FOTO FILOSOFIA
+
+ Dettagli locale:
+ legno, strumenti,
+ atmosfera barber
+
+*/
+
+
+
+.philosophy-text p:last-child{
+
+
+    color:var(--gray);
+
+
+    line-height:2;
+
+    max-width:500px;
+
+
+    margin-top:35px;
+
+
+}
+
+
+/* ==========================
+   SERVICES
+========================== */
+
+
+.services{
+
+    background:#11100d;
+
+}
+
+
+
+.section-title{
+
+    margin-bottom:80px;
+
+}
+
+
+
+.services-list{
+
+    display:flex;
+
+    flex-direction:column;
+
+
+}
+
+
+
+.service-item{
+
+
+    display:grid;
+
+
+    grid-template-columns:80px 1fr auto;
+
+
+    align-items:center;
+
+
+    gap:40px;
+
+
+
+    padding:35px 0;
+
+
+    border-bottom:1px solid rgba(185,151,91,.25);
+
+
+    transition:.4s;
+
+
+}
+
+
+
+.service-item span{
+
+
+    color:var(--gold);
+
+
+    font-size:14px;
+
+
+    letter-spacing:2px;
+
+
+}
+
+
+
+.service-item h3{
+
+
+    font-size:38px;
+
+
+    margin-bottom:10px;
+
+
+}
+
+
+
+.service-item p{
+
+
+    color:var(--gray);
+
+
+    max-width:500px;
+
+
+    line-height:1.7;
+
+
+}
+
+
+
+.service-item strong{
+
+
+    font-family:"Playfair Display",serif;
+
+
+    font-size:32px;
+
+
+    font-weight:400;
+
+
+    color:var(--gold-light);
+
+
+}
+
+
+
+.service-item:hover{
+
+
+    padding-left:20px;
+
+
+}
+
+
+
+
+
+/* ==========================
+   GALLERY
+========================== */
+
+
+.gallery-grid{
+
+
+    display:grid;
+
+
+    grid-template-columns:1.4fr .8fr;
+
+
+    grid-template-rows:auto auto;
+
+
+    gap:25px;
+
+
+
+}
+
+
+
+.gallery-large{
+
+
+    height:700px;
+
+
+    background:#181611;
+
+
+    grid-row:span 2;
+
+
+    position:relative;
+
+
+}
+
+
+
+
+/*
+ FOTO GALLERY PRINCIPALE
+
+ Taglio premium
+ Cliente
+ Barbiere al lavoro
+
+*/
+
+
+
+
+
+.gallery-small{
+
+
+    display:grid;
+
+
+    grid-template-columns:1fr 1fr;
+
+
+    gap:25px;
+
+
+}
+
+
+
+.gallery-small div{
+
+
+    height:330px;
+
+
+    background:#181611;
+
+
+}
+
+
+
+
+/*
+ FOTO GALLERY 1
+
+ FOTO GALLERY 2
+
+*/
+
+
+
+
+
+.gallery-wide{
+
+
+    height:350px;
+
+
+    background:#181611;
+
+
+}
+
+
+
+/*
+ FOTO GALLERY 3
+
+*/
+
+
+
+
+.gallery-large,
+.gallery-small div,
+.gallery-wide{
+
+
+    overflow:hidden;
+
+
+    position:relative;
+
+
+}
+
+
+.gallery-large img,
+.gallery-small img,
+.gallery-wide img{
+
+    width:100%;
+    height:100%;
+
+    object-fit:cover;
+
+    display:block;
+
+}
+
+
+.gallery-small #sinistra img{
+
+    object-position: 60% center;
+
+}
+
+
+
+
+.gallery-large::before,
+.gallery-small div::before,
+.gallery-wide::before{
+
+
+    content:"";
+
+
+    position:absolute;
+
+
+    inset:0;
+
+
+    border:1px solid rgba(185,151,91,.25);
+
+
+    transition:.5s;
+
+
+}
+
+
+
+.gallery-large:hover::before,
+.gallery-small div:hover::before,
+.gallery-wide:hover::before{
+
+
+    border-color:var(--gold);
+
+}
+
+
+
+
+
+/* ==========================
+   TEAM
+========================== */
+
+
+.team{
+
+
+    background:#11100d;
+
+
+}
+
+
+
+.team-member{
+
+
+    display:grid;
+
+
+    grid-template-columns:1fr 1fr;
+
+
+    gap:100px;
+
+
+    align-items:center;
+
+
+
+}
+
+
+
+.team-image{
+
+
+    height:700px;
+
+
+    background:#181611;
+
+    
+    overflow:hidden;
+
+
+}
+
+
+.team-image img{
+
+    width:100%;
+    height:100%;
+
+    object-fit:cover;
+    object-position:center 20%;
+
+    display:block;
+
+}
+
+
+/*
+ FOTO TEAM
+
+ Ritratto barber
+
+*/
+
+
+
+
+
+.team-info h3{
+
+
+    font-size:55px;
+
+
+    margin-bottom:15px;
+
+
+}
+
+
+
+.team-info p:first-of-type{
+
+
+    color:var(--gold);
+
+
+    letter-spacing:3px;
+
+
+    text-transform:uppercase;
+
+
+    font-size:12px;
+
+
+    margin-bottom:35px;
+
+
+}
+
+
+
+.team-info p:last-child{
+
+
+    color:var(--gray);
+
+
+    line-height:2;
+
+
+    max-width:450px;
+
+
+}
+
+
+
+
+
+/* ==========================
+   REVIEWS
+========================== */
+
+
+.reviews{
+
+
+    text-align:center;
+
+
+    padding-top:160px;
+
+    padding-bottom:160px;
+
+
+}
+
+
+
+.reviews h2{
+
+
+    max-width:900px;
+
+
+    margin:0 auto 50px;
+
+
+    font-style:italic;
+
+
+}
+
+
+
+.reviews span{
+
+
+    color:var(--gold);
+
+
+    letter-spacing:10px;
+
+
+    font-size:25px;
+
+
+}
+
+
+/* ==========================
+   CONTACT
+========================== */
+
+
+.contact{
+
+
+    background:#11100d;
+
+
+    text-align:center;
+
+
+    position:relative;
+
+
+}
+
+
+
+.contact::before{
+
+
+    content:"";
+
+
+    position:absolute;
+
+
+    top:0;
+
+
+    left:8%;
+
+
+    right:8%;
+
+
+    height:1px;
+
+
+    background:rgba(185,151,91,.3);
+
+
+}
+
+
+
+.contact h2{
+
+
+    max-width:900px;
+
+
+    margin:0 auto 30px;
+
+
+}
+
+
+
+.contact > p{
+
+
+    color:var(--gray);
+
+
+    margin-bottom:50px;
+
+
+    font-size:18px;
+
+
+}
+
+
+
+.contact a{
+
+
+    margin-bottom:80px;
+
+
+}
+
+
+
+.contact-info{
+
+
+    display:flex;
+
+
+    justify-content:center;
+
+
+    gap:80px;
+
+
+    flex-wrap:wrap;
+
+
+}
+
+
+.contact-info > *{
+
+    min-width:195px;
+
+}
+
+
+.contact-info a{
+
+    display:inline-block;
+
+    width:max-content;
+
+    color:var(--cream);
+
+    text-decoration:none;
+
+    border-bottom:1px solid var(--gold);
+
+    padding-bottom:5px;
+
+    transition:.3s;
+
+}
+
+
+.contact-info a:hover{
+
+    color:var(--gold);
+
+}
+
+
+
+
+.contact-info p{
+
+
+    color:var(--cream);
+
+
+    letter-spacing:1px;
+
+
+    font-size:14px;
+
+
+}
+
+
+
+.contact-info h4{
+
+    color:var(--gold);
+
+    font-size:12px;
+
+    letter-spacing:4px;
+
+    margin-bottom:15px;
+
+}
+
+
+
+
+/* ==========================
+   FOOTER
+========================== */
+
+
+.footer{
+
+
+    padding:40px 8%;
+
+
+    display:flex;
+
+
+    justify-content:space-between;
+
+
+    align-items:center;
+
+
+    border-top:1px solid rgba(185,151,91,.2);
+
+
+}
+
+
+
+.footer-logo{
+
+
+    font-family:"Playfair Display",serif;
+
+
+    font-size:25px;
+
+
+    letter-spacing:3px;
+
+
+}
+
+
+
+.footer p{
+
+
+    color:var(--gray);
+
+
+    font-size:13px;
+
+
+}
+
+
+
+
+
+
+
+/* ==========================
+   ANIMATIONS
+========================== */
+
+
+
+.hero-content,
+.philosophy-text,
+.section-title,
+.service-item,
+.team-info{
+
+
+    animation:fadeUp 1s ease forwards;
+
+
+}
+
+
+
+@keyframes fadeUp{
+
+
+    from{
+
+        opacity:0;
+
+        transform:translateY(40px);
+
+    }
+
+
+    to{
+
+        opacity:1;
+
+        transform:translateY(0);
+
+    }
+
+
+}
+
+
+
+
+
+.hero-image,
+.philosophy-image,
+.gallery-large,
+.gallery-small div,
+.gallery-wide,
+.team-image{
+
+
+    animation:fadeImage 1.2s ease forwards;
+
+
+}
+
+
+
+@keyframes fadeImage{
+
+
+    from{
+
+        opacity:0;
+
+        transform:scale(1.05);
+
+    }
+
+
+    to{
+
+        opacity:1;
+
+        transform:scale(1);
+
+    }
+
+
+}
+
+
+
+
+
+
+/* ==========================
+   RESPONSIVE TABLET
+========================== */
+
+
+@media(max-width:1000px){
+
+
+
+    section{
+
+        padding:90px 6%;
+
+    }
+
+
+
+
+    .navbar{
+
+        padding:25px 6%;
+
+    }
+
+
+
+    .nav-links{
+
+        display:none;
+
+    }
+
+
+
+    .hero{
+
+
+        grid-template-columns:1fr;
+
+        gap:50px;
+
+
+        padding-top:80px;
+
+
+    }
+
+
+
+
+    .hero-image{
+
+
+        height:600px;
+
+
+    }
+
+    
+
+
+
+
+
+    .philosophy{
+
+
+        grid-template-columns:1fr;
+
+
+        gap:60px;
+
+
+    }
+
+
+
+
+    .philosophy-image{
+
+
+        height:500px;
+
+
+        order:2;
+
+
+    }
+
+
+
+
+
+    .gallery-grid{
+
+
+        grid-template-columns:1fr;
+
+
+    }
+
+
+
+
+
+    .gallery-large{
+
+
+        height:600px;
+
+
+        grid-row:auto;
+
+
+    }
+
+
+
+
+    .gallery-small div{
+
+
+        height:250px;
+
+
+    }
+
+
+
+
+
+    .team-member{
+
+
+        grid-template-columns:1fr;
+
+
+        gap:60px;
+
+
+    }
+
+
+
+
+
+    .team-image{
+
+
+        height:600px;
+
+
+    }
+
+
+
+
+
+}
+
+
+
+@media(max-width:850px){
+
+    .contact-info{
+
+        flex-direction:column;
+
+        gap:40px;
+
+        align-items:center;
+
+    }
+
+    .contact-info > a:last-child{
+
+
+        margin-top:60px;
+
+
+    }
+
+}
+
+
+
+/* ==========================
+   MOBILE
+========================== */
+
+
+@media(max-width:600px){
+
+
+
+    h2{
+
+
+        font-size:42px;
+
+
+    }
+
+
+
+
+    .logo{
+
+
+        font-size:22px;
+
+
+    }
+
+
+
+    #nav{
+
+        padding:12px 20px;
+
+        font-size:11px;
+
+    }
+
+
+
+
+    .hero h1{
+
+
+        font-size:55px;
+
+
+    }
+
+
+
+
+    .hero-image{
+
+
+        height:450px;
+
+
+    }
+
+
+
+
+
+    .service-item{
+
+
+        grid-template-columns:40px 1fr;
+
+
+        gap:20px;
+
+
+    }
+
+
+
+
+    .service-item strong{
+
+
+        grid-column:2;
+
+
+        margin-top:15px;
+
+
+    }
+
+
+
+
+    .service-item h3{
+
+
+        font-size:30px;
+
+
+    }
+
+
+
+
+
+    .gallery-small{
+
+
+        grid-template-columns:1fr;
+
+
+    }
+
+
+
+
+    .gallery-small div{
+
+
+        height:300px;
+
+
+    }
+
+
+
+
+
+    .team-image{
+
+
+        height:450px;
+
+
+    }
+
+
+
+
+    .team-info h3{
+
+
+        font-size:42px;
+
+
+    }
+
+
+
+
+    .reviews h2{
+
+
+        font-size:36px;
+
+
+    }
+
+
+
+
+
+    .contact-info{
+
+
+        flex-direction:column;
+
+
+        align-items:center;
+
+
+        gap:30px;
+
+
+    }
+
+
+
+    .contact-info > a:last-child{
+
+
+        margin-top:60px;
+
+
+    }
+
+
+
+    .footer{
+
+
+        flex-direction:column;
+
+
+        gap:20px;
+
+
+        text-align:center;
+
+
+    }
+
+
+}
+
+@media(max-width:350px){
+
+    h1{
+        font-size:42px;
+    }
+
+
+    h2{
+        font-size:32px;
+    }
+
+
+    .hero-image{
+        height:350px;
+    }
+
+
+    .team-image,
+    .philosophy-image{
+        height:320px;
+    }
+
+
+    .navbar{
+        padding:25px 5%;
+    }
+
+
+    #nva{
+        padding:10px 15px;
+    }
+
+}
+
+
+.reveal{
+
+    opacity:0;
+
+    transform:translateY(50px);
+
+    transition:
+    opacity .8s ease,
+    transform .8s ease;
+
+}
+
+
+.reveal.active{
+
+    opacity:1;
+
+    transform:translateY(0);
+
+}
