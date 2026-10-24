@@ -198,7 +198,7 @@ function Team() {
             <h3>Il tuo stile,<br /><em>la nostra firma.</em></h3>
             <p className="team-role">BARBER CULTURE</p>
             <p>Unire esperienza, ascolto e cura del dettaglio: ogni appuntamento parte da te e dal risultato che vuoi ottenere.</p>
-            <a className="text-link" href={PHONE_LINK}>Parliamone <span aria-hidden="true">↗</span></a>
+            <a className="text-link" href={PHONE_LINK}>Contattaci <span aria-hidden="true">↗</span></a>
           </div>
         </div>
       </div>
