@@ -1,5 +1,7 @@
-import { StrictMode, useEffect, useState } from "react";
+import { StrictMode, useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
+import { createClient } from "@supabase/supabase-js";
+import emailjs from "@emailjs/browser";
 import "./style.css";
 
 import heroImage from "./assets/hero.avif";
@@ -12,6 +14,10 @@ import teamImage from "./assets/team.jpg";
 
 const PHONE_NUMBER = "+393494534182";
 const PHONE_LINK = `tel:${PHONE_NUMBER}`;
+const BOOKING_LINK = "/prenota";
+const SUPABASE_URL = "https://bjslpgjnzaikvrsxntkk.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_ZqtW0xLMtqhEw0zNRtM4Mw_cBtYWwhf";
+const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
 const MAP_LINK =
   "https://www.google.it/maps/place/Eggy+Barber's+Square/@45.4657135,8.8807793,17z/data=!3m1!4b1!4m6!3m5!1s0x4786f1eb62ff4627:0x5ab8e7d3d4f0224c!8m2!3d45.4657098!4d8.8833542!16s%2Fg%2F11h0ch2w5k";
 const INSTAGRAM_LINK = "https://www.instagram.com/eggybarberssquare/";
@@ -56,7 +62,7 @@ function Navbar() {
           <a href="#servizi" onClick={closeMenu}>Servizi</a>
           <a href="#galleria" onClick={closeMenu}>Galleria</a>
           <a href="#contatti" onClick={closeMenu}>Contatti</a>
-          <a className="cta nav-cta" href={PHONE_LINK} onClick={closeMenu}>Prenota <span aria-hidden="true">↗</span></a>
+          <a className="cta nav-cta" href={BOOKING_LINK} onClick={closeMenu}>Prenota <span aria-hidden="true">↗</span></a>
         </div>
       </nav>
     </header>
@@ -74,7 +80,7 @@ function Hero() {
           Il tuo stile, curato in ogni dettaglio.
         </p>
         <div className="hero-actions">
-          <a href={PHONE_LINK} className="cta">Prenota un appuntamento <span aria-hidden="true">↗</span></a>
+          <a href={BOOKING_LINK} className="cta">Prenota un appuntamento <span aria-hidden="true">↗</span></a>
           <a href="#servizi" className="text-link">Scopri i servizi <span aria-hidden="true">↓</span></a>
         </div>
         <div className="hero-note"><span className="status-dot" /> UN APPROCCIO PERSONALE, UN RISULTATO TUO.</div>
@@ -144,7 +150,7 @@ function Services() {
                 <p>{service.description}</p>
               </div>
               <strong className="service-price">{service.price}</strong>
-              <a href={PHONE_LINK} className="service-arrow" aria-label={`Prenota ${service.name}`}>↗</a>
+              <a href={BOOKING_LINK} className="service-arrow" aria-label={`Prenota ${service.name}`}>↗</a>
             </article>
           ))}
         </div>
@@ -198,7 +204,7 @@ function Team() {
             <h3>Il tuo stile,<br /><em>la nostra firma.</em></h3>
             <p className="team-role">BARBER CULTURE</p>
             <p>Unire esperienza, ascolto e cura del dettaglio: ogni appuntamento parte da te e dal risultato che vuoi ottenere.</p>
-            <a className="text-link" href={PHONE_LINK}>Contattaci <span aria-hidden="true">↗</span></a>
+            <a className="text-link" href={PHONE_LINK}>Parliamone <span aria-hidden="true">↗</span></a>
           </div>
         </div>
       </div>
@@ -226,7 +232,7 @@ function Contact() {
         <p className="eyebrow reveal">05 — VIENI A TROVARCI</p>
         <div className="contact-heading reveal">
           <h2>Il prossimo passo<br />è <em>il tuo.</em></h2>
-          <a href={PHONE_LINK} className="cta cta-large">Prenota il tuo appuntamento <span aria-hidden="true">↗</span></a>
+          <a href={BOOKING_LINK} className="cta cta-large">Prenota il tuo appuntamento <span aria-hidden="true">↗</span></a>
         </div>
         <p className="contact-lead reveal">Vieni a scoprire Eggy Barber's Square. Ti aspettiamo a Magenta.</p>
         <div className="contact-info reveal">
@@ -291,29 +297,297 @@ function useScrollAnimation() {
   }, []);
 }
 
-function App() {
-  useScrollAnimation();
+function BookingPage() {
+  const [date, setDate] = useState(() => {
+    const now = new Date();
+    const local = new Date(now.getTime() - now.getTimezoneOffset() * 60000);
+    return local.toISOString().slice(0, 10);
+  });
+  const [slots, setSlots] = useState([]);
+  const [selectedTime, setSelectedTime] = useState("");
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
+  const [loadingSlots, setLoadingSlots] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
 
+  const today = (() => {
+    const now = new Date();
+    return new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+  })();
+
+  useEffect(() => {
+    let active = true;
+    async function loadSlots() {
+      setLoadingSlots(true);
+      setError("");
+      setSelectedTime("");
+      const { data, error: slotsError } = await supabase.rpc("get_available_slots", { p_date: date });
+      if (!active) return;
+      if (slotsError) {
+        setSlots([]);
+        setError("Non riesco a caricare gli orari. Riprova tra poco.");
+      } else {
+        const now = new Date();
+        const localToday = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+        const currentTime = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+        setSlots((data || []).filter((slot) => {
+          const time = String(slot.slot_time).slice(0, 5);
+          return slot.available && !(date === localToday && time <= currentTime);
+        }));
+      }
+      setLoadingSlots(false);
+    }
+    if (date) loadSlots();
+    return () => { active = false; };
+  }, [date]);
+
+  async function handleSubmit(event) {
+    event.preventDefault();
+    setError("");
+
+    if (!selectedTime) {
+      setError("Seleziona un orario disponibile.");
+      return;
+    }
+
+    if (!window.crypto?.randomUUID) {
+      setError("Questo browser non supporta la prenotazione sicura. Aggiorna il browser e riprova.");
+      return;
+    }
+
+    setSubmitting(true);
+    const cancellationToken = `${window.crypto.randomUUID()}${window.crypto.randomUUID()}`;
+
+    try {
+      // Registra prima la prenotazione su Supabase.
+      const { data: bookingId, error: bookingError } = await supabase.rpc("create_booking", {
+        p_date: date,
+        p_time: selectedTime,
+        p_name: name.trim(),
+        p_phone: phone.trim(),
+        p_email: email.trim(),
+        p_cancellation_token: cancellationToken,
+      });
+
+      if (bookingError) {
+        setError(
+          bookingError.message?.includes("appena prenotato")
+            ? "Qualcun altro ha appena prenotato questo orario. Scegline un altro."
+            : bookingError.message || "Non è stato possibile completare la prenotazione."
+        );
+
+        const { data } = await supabase.rpc("get_available_slots", { p_date: date });
+        if (data) {
+          const now = new Date();
+          const localToday = new Date(now.getTime() - now.getTimezoneOffset() * 60000)
+            .toISOString()
+            .slice(0, 10);
+          const currentTime = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+          setSlots(
+            data.filter(
+              (slot) => slot.available && !(date === localToday && String(slot.slot_time).slice(0, 5) <= currentTime)
+            )
+          );
+        }
+        return;
+      }
+
+      // La prenotazione è salvata: prepara il link personale per cancellarla.
+      // create_booking restituisce l'UUID della prenotazione.
+      const cancellationLink = bookingId
+        ? `${window.location.origin}/cancella?id=${encodeURIComponent(bookingId)}&token=${encodeURIComponent(cancellationToken)}`
+        : "";
+
+      // Se EmailJS fallisce, la prenotazione rimane confermata.
+      try {
+        await emailjs.send(
+          "service_attxoaw",
+          "template_0xqw8rk",
+          {
+            to_email: email.trim(),
+            customer_name: name.trim(),
+            appointment_date: new Date(`${date}T12:00:00`).toLocaleDateString("it-IT", {
+              weekday: "long",
+              day: "numeric",
+              month: "long",
+              year: "numeric",
+            }),
+            appointment_time: selectedTime,
+            cancellation_link: cancellationLink,
+          },
+          { publicKey: "elsn4_PeMM6tbOAMh" }
+        );
+      } catch (emailError) {
+        console.error("La prenotazione è stata salvata, ma l'email non è stata inviata:", emailError);
+      }
+
+      setSuccess(true);
+    } catch (unexpectedError) {
+      console.error("Errore durante la prenotazione:", unexpectedError);
+      setError("Si è verificato un errore imprevisto. Controlla la connessione e riprova.");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <div className="booking-page">
+      <header className="booking-header">
+        <a className="logo" href="/" aria-label="Torna alla homepage">
+          <span className="logo-main">EGGY</span><span className="logo-sub">BARBER'S SQUARE</span>
+        </a>
+        <a className="booking-back" href="/">← Torna al sito</a>
+      </header>
+      <main className="booking-main">
+        <p className="eyebrow">EGGY BARBER'S SQUARE · MAGENTA</p>
+        <h1>Prenota il tuo<br /><em>appuntamento.</em></h1>
+        <p className="booking-intro">Scegli il giorno e l'orario, poi lasciaci i tuoi contatti. La prenotazione viene confermata al termine della procedura.</p>
+
+        {success ? (
+          <section className="booking-success" role="status">
+            <span className="booking-success-mark">✓</span>
+            <p className="eyebrow">PRENOTAZIONE CONFERMATA</p>
+            <h2>Ti aspettiamo.</h2>
+            <p>Il tuo appuntamento è stato registrato per il <strong>{new Date(`${date}T12:00:00`).toLocaleDateString("it-IT", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}</strong> alle <strong>{selectedTime}</strong>.</p>
+            <p>Per modifiche o cancellazioni, contatta direttamente la barberia.</p>
+            <a className="cta" href="/">Torna al sito <span aria-hidden="true">↗</span></a>
+          </section>
+        ) : (
+          <form className="booking-form" onSubmit={handleSubmit}>
+            <div className="booking-field">
+              <label htmlFor="booking-date">01 — Scegli il giorno</label>
+              <input id="booking-date" type="date" value={date} min={today} required onChange={(event) => { setDate(event.target.value); setError(""); }} />
+              <span className="booking-hint">Il lunedì la barberia è chiusa.</span>
+            </div>
+            <fieldset className="booking-field booking-time-field">
+              <legend>02 — Scegli l'orario</legend>
+              {loadingSlots ? <p className="booking-hint">Caricamento orari...</p> : slots.length ? (
+                <div className="booking-slots">
+                  {slots.map((slot) => {
+                    const time = String(slot.slot_time).slice(0, 5);
+                    return <button className={`booking-slot${selectedTime === time ? " is-selected" : ""}`} type="button" key={time} aria-pressed={selectedTime === time} onClick={() => { setSelectedTime(time); setError(""); }}>{time}</button>;
+                  })}
+                </div>
+              ) : <p className="booking-hint">Non ci sono orari disponibili per questa data. Prova un altro giorno.</p>}
+            </fieldset>
+            <div className="booking-field">
+              <label htmlFor="booking-name">03 — Il tuo nome</label>
+              <input id="booking-name" type="text" autoComplete="name" minLength="2" maxLength="100" value={name} onChange={(event) => setName(event.target.value)} placeholder="Nome e cognome" required />
+            </div>
+            <div className="booking-field">
+              <label htmlFor="booking-phone">04 — Numero di telefono</label>
+              <input id="booking-phone" type="tel" autoComplete="tel" minLength="6" maxLength="30" value={phone} onChange={(event) => setPhone(event.target.value)} placeholder="Il tuo numero" required />
+            </div>
+            <div className="booking-field">
+              <label htmlFor="booking-email">05 — Indirizzo email</label>
+              <input id="booking-email" type="email" autoComplete="email" maxLength="254" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="nome@esempio.it" required />
+            </div>
+            {error && <p className="booking-error" role="alert">{error}</p>}
+            <button className="cta booking-submit" type="submit" disabled={submitting || loadingSlots || !selectedTime}>
+              {submitting ? "Invio in corso..." : "Conferma prenotazione"} <span aria-hidden="true">↗</span>
+            </button>
+            <p className="booking-privacy">I dati inseriti vengono utilizzati per gestire il tuo appuntamento.</p>
+          </form>
+        )}
+      </main>
+      <footer className="booking-footer">© {new Date().getFullYear()} Eggy Barber's Square · Magenta</footer>
+    </div>
+  );
+}
+
+function CancellationPage() {
+  const [state, setState] = useState("loading");
+  const [message, setMessage] = useState("Stiamo verificando il link di cancellazione...");
+  const requestStarted = useRef(false);
+
+  useEffect(() => {
+    // Evita una seconda chiamata RPC in sviluppo, dove StrictMode ripete gli effetti.
+    if (requestStarted.current) return;
+    requestStarted.current = true;
+
+    async function cancelBooking() {
+      const params = new URLSearchParams(window.location.search);
+      const bookingId = params.get("id");
+      const cancellationToken = params.get("token");
+
+      if (!bookingId || !cancellationToken) {
+        setState("error");
+        setMessage("Il link non è completo o non è valido. Contatta direttamente la barberia.");
+        return;
+      }
+
+      const { data, error } = await supabase.rpc("cancel_booking", {
+        p_booking_id: bookingId,
+        p_cancellation_token: cancellationToken,
+      });
+
+      if (error) {
+        console.error("Errore durante la cancellazione:", error);
+        setState("error");
+        setMessage("Non siamo riusciti a cancellare la prenotazione. Contatta direttamente la barberia.");
+        return;
+      }
+
+      if (data === "cancelled") {
+        setState("success");
+        setMessage("La tua prenotazione è stata cancellata correttamente.");
+      } else if (data === "already_cancelled") {
+        setState("already-cancelled");
+        setMessage("Questa prenotazione è già stata cancellata in precedenza.");
+      } else {
+        setState("error");
+        setMessage("Il link non è valido oppure è scaduto. Se hai bisogno di aiuto, contatta la barberia.");
+      }
+    }
+
+    cancelBooking();
+  }, []);
+
+  return (
+    <div className="booking-page">
+      <header className="booking-header">
+        <a className="logo" href="/" aria-label="Torna alla homepage">
+          <span className="logo-main">EGGY</span><span className="logo-sub">BARBER'S SQUARE</span>
+        </a>
+        <a className="booking-back" href="/">← Torna al sito</a>
+      </header>
+      <main className="booking-main">
+        <p className="eyebrow">EGGY BARBER'S SQUARE · MAGENTA</p>
+        <h1>{state === "success" ? <>Prenotazione<br /><em>cancellata.</em></> : state === "already-cancelled" ? <>Prenotazione<br /><em>già cancellata.</em></> : <>Gestione<br /><em>prenotazione.</em></>}</h1>
+        <section className="booking-success" role="status" aria-live="polite">
+          {state === "loading" ? <p className="booking-hint">Verifica in corso...</p> : <span className="booking-success-mark">{state === "success" || state === "already-cancelled" ? "✓" : "!"}</span>}
+          <p>{message}</p>
+          <a className="cta" href="/">Torna al sito <span aria-hidden="true">↗</span></a>
+        </section>
+      </main>
+      <footer className="booking-footer">© {new Date().getFullYear()} Eggy Barber's Square · Magenta</footer>
+    </div>
+  );
+}
+
+function HomePage() {
+  useScrollAnimation();
   return (
     <>
       <Navbar />
       <main>
-        <Hero />
-        <Philosophy />
-        <Services />
-        <Gallery />
-        <Team />
-        <Reviews />
-        <Contact />
+        <Hero /><Philosophy /><Services /><Gallery /><Team /><Reviews /><Contact />
       </main>
       <Footer />
     </>
   );
 }
 
+function App() {
+  const path = window.location.pathname.replace(/\/+$/, "") || "/";
+  if (path === BOOKING_LINK) return <BookingPage />;
+  if (path === "/cancella") return <CancellationPage />;
+  return <HomePage />;
+}
+
 createRoot(document.getElementById("root")).render(
-  <StrictMode>
-    <App />
-  </StrictMode>
+  <StrictMode><App /></StrictMode>
 );
-    
