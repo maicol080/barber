@@ -315,7 +315,8 @@ function BookingPage() {
 
   const today = (() => {
     const now = new Date();
-    return new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+    const local = new Date(now.getTime() - now.getTimezoneOffset() * 60000);
+    return local.toISOString().slice(0, 10);
   })();
 
   useEffect(() => {
@@ -694,7 +695,7 @@ function AdminPage() {
 
   const upcomingBookings = bookings.filter(isUpcomingBooking);
 
-  const filteredBookings = upcomingBookings.filter((booking) => {
+  const filteredBookings = bookings.filter((booking) => {
     const matchesSearch = [
       booking.customer_name,
       booking.customer_phone,
@@ -706,12 +707,13 @@ function AdminPage() {
     const matchesFilter =
       filter === "all" ||
       (filter === "confirmed" && booking.status === "confirmed") ||
-      (filter === "cancelled" && booking.status === "cancelled");
+      (filter === "cancelled" && booking.status === "cancelled") ||
+      (filter === "upcoming" && booking.status === "confirmed" && isUpcomingBooking(booking));
 
     return matchesSearch && matchesFilter;
   });
 
-  // Appuntamenti di oggi e prenotazioni confermate: solo quelle ancora da svolgere.
+  // I riepiloghi contano solo appuntamenti confermati ancora da svolgere.
   const activeBookings = upcomingBookings.filter(
     (booking) => booking.status === "confirmed"
   );
@@ -777,9 +779,10 @@ function AdminPage() {
         </header>
 
         <section style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))", gap: "16px", margin: "28px 0" }}>
-          <div style={styles.card}><p style={styles.muted}>Appuntamenti di oggi</p><strong style={{ fontSize: "34px" }}>{todayBookings.length}</strong></div>
-          <div style={styles.card}><p style={styles.muted}>Prenotazioni confermate</p><strong style={{ fontSize: "34px" }}>{activeBookings.length}</strong></div>
-          <div style={styles.card}><p style={styles.muted}>Prenotazioni future confermate</p><strong style={{ fontSize: "34px" }}>{activeBookings.length}</strong></div>
+          <div style={styles.card}>
+            <p style={styles.muted}>Appuntamenti di oggi</p>
+            <strong style={{ fontSize: "34px" }}>{todayBookings.length}</strong>
+          </div>
         </section>
 
         <section style={styles.card}>
@@ -790,7 +793,10 @@ function AdminPage() {
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "12px", marginBottom: "22px" }}>
             <input style={styles.input} type="search" placeholder="Cerca nome, telefono o email..." value={search} onChange={(event) => setSearch(event.target.value)} />
             <select style={styles.input} value={filter} onChange={(event) => setFilter(event.target.value)}>
-              <option value="all">Tutte le prenotazioni</option><option value="confirmed">Confermate</option><option value="cancelled">Annullate</option>
+              <option value="all">Tutte le prenotazioni</option>
+              <option value="confirmed">Confermate</option>
+              <option value="cancelled">Annullate</option>
+              <option value="upcoming">Solo appuntamenti futuri</option>
             </select>
           </div>
           {bookingsError && <p role="alert" style={{ color: "#ff9999" }}>{bookingsError}</p>}
