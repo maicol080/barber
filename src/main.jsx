@@ -568,6 +568,264 @@ function CancellationPage() {
   );
 }
 
+function AdminPage() {
+  const [session, setSession] = useState(null);
+  const [role, setRole] = useState(null);
+  const [checkingAuth, setCheckingAuth] = useState(true);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loginError, setLoginError] = useState("");
+  const [bookings, setBookings] = useState([]);
+  const [loadingBookings, setLoadingBookings] = useState(false);
+  const [bookingsError, setBookingsError] = useState("");
+  const [search, setSearch] = useState("");
+  const [filter, setFilter] = useState("all");
+  const [notice, setNotice] = useState("");
+  const [busyId, setBusyId] = useState(null);
+
+  useEffect(() => {
+    let active = true;
+
+    async function checkSession() {
+      const { data, error } = await supabase.auth.getSession();
+      if (!active) return;
+      if (error) setLoginError("Non è stato possibile verificare la sessione.");
+      const currentSession = data?.session ?? null;
+      setSession(currentSession);
+      setRole(currentSession?.user?.app_metadata?.role ?? null);
+      setCheckingAuth(false);
+    }
+
+    checkSession();
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, newSession) => {
+      if (!active) return;
+      setSession(newSession);
+      setRole(newSession?.user?.app_metadata?.role ?? null);
+      setCheckingAuth(false);
+    });
+
+    return () => {
+      active = false;
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  async function handleLogin(event) {
+    event.preventDefault();
+    setLoginError("");
+    setNotice("");
+    const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+    if (error) setLoginError("Email o password non corretti.");
+  }
+
+  async function handleLogout() {
+    const { error } = await supabase.auth.signOut();
+    if (error) setNotice("Non è stato possibile terminare la sessione.");
+  }
+
+  async function loadBookings() {
+    setLoadingBookings(true);
+    setBookingsError("");
+    const { data, error } = await supabase
+      .from("bookings")
+      .select("id, appointment_date, appointment_time, customer_name, customer_phone, customer_email, status, created_at")
+      .order("appointment_date", { ascending: true })
+      .order("appointment_time", { ascending: true });
+
+    if (error) {
+      console.error("Errore caricamento appuntamenti:", error);
+      setBookingsError("Non è stato possibile caricare gli appuntamenti. Riprova.");
+    } else {
+      setBookings(data ?? []);
+    }
+    setLoadingBookings(false);
+  }
+
+
+  useEffect(() => {
+    if (!session || (role !== "admin" && role !== "barber")) return;
+
+    let active = true;
+
+    const fetchBookings = async () => {
+      if (active) {
+        await loadBookings();
+      }
+    };
+
+    fetchBookings();
+
+    return () => {
+      active = false;
+    };
+  }, [session, role]);
+
+  async function cancelBooking(booking) {
+    if (booking.status !== "confirmed") return;
+    const confirmed = window.confirm(
+      `Vuoi annullare l'appuntamento di ${booking.customer_name} del ${new Date(`${booking.appointment_date}T12:00:00`).toLocaleDateString("it-IT")} alle ${String(booking.appointment_time).slice(0, 5)}?`
+    );
+    if (!confirmed) return;
+
+    setBusyId(booking.id);
+    setNotice("");
+    setBookingsError("");
+    const { data, error } = await supabase.rpc("admin_cancel_booking", { p_booking_id: booking.id });
+
+    if (error) {
+      console.error("Errore annullamento appuntamento:", error);
+      setBookingsError("Non è stato possibile annullare l'appuntamento.");
+    } else if (data === "cancelled") {
+      setNotice("Appuntamento annullato correttamente.");
+      await loadBookings();
+    } else {
+      setNotice("L'appuntamento non esiste oppure è già stato annullato.");
+      await loadBookings();
+    }
+    setBusyId(null);
+  }
+
+  const normalizedSearch = search.trim().toLowerCase();
+
+  const now = new Date();
+  const today = (() => {
+    const local = new Date(now.getTime() - now.getTimezoneOffset() * 60000);
+    return local.toISOString().slice(0, 10);
+  })();
+
+  // Considera future solo gli appuntamenti il cui giorno/orario non è passato.
+  const isUpcomingBooking = (booking) => {
+    const date = String(booking.appointment_date).slice(0, 10);
+    const time = String(booking.appointment_time).slice(0, 8);
+    const appointmentDateTime = new Date(`${date}T${time}`);
+    return !Number.isNaN(appointmentDateTime.getTime()) && appointmentDateTime > now;
+  };
+
+  const upcomingBookings = bookings.filter(isUpcomingBooking);
+
+  const filteredBookings = upcomingBookings.filter((booking) => {
+    const matchesSearch = [
+      booking.customer_name,
+      booking.customer_phone,
+      booking.customer_email,
+    ].some((value) =>
+      String(value ?? "").toLowerCase().includes(normalizedSearch)
+    );
+
+    const matchesFilter =
+      filter === "all" ||
+      (filter === "confirmed" && booking.status === "confirmed") ||
+      (filter === "cancelled" && booking.status === "cancelled");
+
+    return matchesSearch && matchesFilter;
+  });
+
+  const todayBookings = upcomingBookings.filter(
+    (booking) =>
+      String(booking.appointment_date).slice(0, 10) === today &&
+      booking.status === "confirmed"
+  );
+  const activeBookings = upcomingBookings.filter(
+    (booking) => booking.status === "confirmed"
+  );
+
+  const styles = {
+    page: { minHeight: "100vh", background: "#11110f", color: "#f3f0e8", fontFamily: "Arial, sans-serif", padding: "32px 20px" },
+    container: { maxWidth: "1100px", margin: "0 auto" },
+    muted: { color: "#a5a296" },
+    input: { width: "100%", boxSizing: "border-box", padding: "13px 14px", background: "#20201c", border: "1px solid #45443c", color: "#f3f0e8", borderRadius: "4px", fontSize: "15px" },
+    button: { padding: "12px 16px", background: "#d2b477", color: "#17150f", border: "none", borderRadius: "4px", cursor: "pointer", fontWeight: 700 },
+    card: { background: "#1b1b17", border: "1px solid #34342e", borderRadius: "6px", padding: "20px" },
+  };
+
+  if (checkingAuth) {
+    return <div style={styles.page}><div style={styles.container}>Verifica dell'accesso...</div></div>;
+  }
+
+  if (!session) {
+    return (
+      <div style={styles.page}>
+        <main style={{ ...styles.container, maxWidth: "420px", paddingTop: "8vh" }}>
+          <a href="/" style={{ color: "#d2b477", textDecoration: "none" }}>← Torna al sito</a>
+          <p style={{ ...styles.muted, marginTop: "42px", letterSpacing: "2px" }}>EGGY BARBER'S SQUARE</p>
+          <h1 style={{ fontSize: "42px", marginBottom: "10px" }}>Area <span style={{ color: "#d2b477" }}>riservata.</span></h1>
+          <p style={styles.muted}>Accedi per gestire gli appuntamenti.</p>
+          <form onSubmit={handleLogin} style={{ display: "grid", gap: "18px", marginTop: "30px" }}>
+            <label>Email<input style={{ ...styles.input, marginTop: "8px" }} type="email" autoComplete="username" value={email} onChange={(event) => setEmail(event.target.value)} required /></label>
+            <label>Password<input style={{ ...styles.input, marginTop: "8px" }} type="password" autoComplete="current-password" value={password} onChange={(event) => setPassword(event.target.value)} required /></label>
+            {loginError && <p role="alert" style={{ color: "#ff9999" }}>{loginError}</p>}
+            <button style={styles.button} type="submit">Accedi</button>
+          </form>
+        </main>
+      </div>
+    );
+  }
+
+  if (role !== "admin" && role !== "barber") {
+    return (
+      <div style={styles.page}>
+        <main style={styles.container}>
+          <h1>Accesso non autorizzato</h1>
+          <p style={styles.muted}>Questo account non dispone di un ruolo valido per il pannello.</p>
+          <button style={styles.button} onClick={handleLogout}>Esci</button>
+        </main>
+      </div>
+    );
+  }
+
+  return (
+    <div style={styles.page}>
+      <main style={styles.container}>
+        <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "16px", flexWrap: "wrap", borderBottom: "1px solid #34342e", paddingBottom: "24px" }}>
+          <div>
+            <p style={{ ...styles.muted, letterSpacing: "2px" }}>EGGY BARBER'S SQUARE</p>
+            <h1 style={{ fontSize: "clamp(30px, 5vw, 46px)", margin: "10px 0" }}>Gestione <span style={{ color: "#d2b477" }}>appuntamenti.</span></h1>
+            <p style={styles.muted}>Accesso: {role === "admin" ? "Amministratore" : "Barbiere"}</p>
+          </div>
+          <button style={styles.button} onClick={handleLogout}>Esci</button>
+        </header>
+
+        <section style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))", gap: "16px", margin: "28px 0" }}>
+          <div style={styles.card}><p style={styles.muted}>Appuntamenti di oggi</p><strong style={{ fontSize: "34px" }}>{todayBookings.length}</strong></div>
+          <div style={styles.card}><p style={styles.muted}>Prenotazioni confermate</p><strong style={{ fontSize: "34px" }}>{activeBookings.length}</strong></div>
+          <div style={styles.card}><p style={styles.muted}>Prenotazioni future</p><strong style={{ fontSize: "34px" }}>{upcomingBookings.length}</strong></div>
+        </section>
+
+        <section style={styles.card}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "16px", flexWrap: "wrap", marginBottom: "20px" }}>
+            <h2 style={{ margin: 0 }}>Prenotazioni</h2>
+            <button style={styles.button} onClick={loadBookings} disabled={loadingBookings}>{loadingBookings ? "Aggiornamento..." : "Aggiorna"}</button>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "12px", marginBottom: "22px" }}>
+            <input style={styles.input} type="search" placeholder="Cerca nome, telefono o email..." value={search} onChange={(event) => setSearch(event.target.value)} />
+            <select style={styles.input} value={filter} onChange={(event) => setFilter(event.target.value)}>
+              <option value="all">Tutte le prenotazioni</option><option value="confirmed">Confermate</option><option value="cancelled">Annullate</option>
+            </select>
+          </div>
+          {bookingsError && <p role="alert" style={{ color: "#ff9999" }}>{bookingsError}</p>}
+          {notice && <p role="status" style={{ color: "#d2b477" }}>{notice}</p>}
+          {loadingBookings && bookings.length === 0 ? <p style={styles.muted}>Caricamento appuntamenti...</p> : filteredBookings.length === 0 ? <p style={styles.muted}>Nessuna prenotazione trovata.</p> : (
+            <div style={{ display: "grid", gap: "12px" }}>
+              {filteredBookings.map((booking) => (
+                <article key={booking.id} style={{ borderTop: "1px solid #34342e", paddingTop: "18px", display: "grid", gridTemplateColumns: "minmax(0, 1fr) auto", alignItems: "center", gap: "16px" }}>
+                  <div>
+                    <h3 style={{ margin: "0 0 8px" }}>{booking.customer_name}</h3>
+                    <p style={{ ...styles.muted, margin: "5px 0" }}>{new Date(`${booking.appointment_date}T12:00:00`).toLocaleDateString("it-IT")} · {String(booking.appointment_time).slice(0, 5)}</p>
+                    <p style={{ margin: "5px 0", overflowWrap: "anywhere" }}>{booking.customer_phone}</p>
+                    <p style={{ ...styles.muted, margin: "5px 0", overflowWrap: "anywhere" }}>{booking.customer_email}</p>
+                    <span style={{ display: "inline-block", marginTop: "8px", color: booking.status === "confirmed" ? "#a8d6a0" : "#c1bcb0", fontSize: "12px", textTransform: "uppercase", letterSpacing: "1px" }}>{booking.status === "confirmed" ? "Confermata" : "Annullata"}</span>
+                  </div>
+                  {booking.status === "confirmed" && <button style={{ ...styles.button, background: "#34342e", color: "#f3f0e8" }} disabled={busyId === booking.id} onClick={() => cancelBooking(booking)}>{busyId === booking.id ? "Attendi..." : "Annulla"}</button>}
+                </article>
+              ))}
+            </div>
+          )}
+        </section>
+      </main>
+    </div>
+  );
+}
+
 function HomePage() {
   useScrollAnimation();
   return (
@@ -585,6 +843,7 @@ function App() {
   const path = window.location.pathname.replace(/\/+$/, "") || "/";
   if (path === BOOKING_LINK) return <BookingPage />;
   if (path === "/cancella") return <CancellationPage />;
+  if (path === "/admin") return <AdminPage />;
   return <HomePage />;
 }
 
