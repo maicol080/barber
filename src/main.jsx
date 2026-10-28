@@ -701,7 +701,11 @@ function AdminPage() {
     return !Number.isNaN(appointmentDateTime.getTime()) && appointmentDateTime > now;
   };
 
-  const upcomingBookings = bookings.filter(isUpcomingBooking);
+  const upcomingBookings = bookings.filter(
+    (booking) =>
+      isUpcomingBooking(booking) &&
+      booking.status === "confirmed"
+  );
 
   const filteredBookings = upcomingBookings.filter((booking) => {
     const matchesSearch = [
