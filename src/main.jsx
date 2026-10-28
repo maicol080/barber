@@ -641,23 +641,14 @@ function AdminPage() {
     setLoadingBookings(false);
   }
 
-
   useEffect(() => {
     if (!session || (role !== "admin" && role !== "barber")) return;
 
-    let active = true;
+    const timeoutId = setTimeout(() => {
+      loadBookings();
+    }, 0);
 
-    const fetchBookings = async () => {
-      if (active) {
-        await loadBookings();
-      }
-    };
-
-    fetchBookings();
-
-    return () => {
-      active = false;
-    };
+    return () => clearTimeout(timeoutId);
   }, [session, role]);
 
   async function cancelBooking(booking) {
@@ -701,11 +692,7 @@ function AdminPage() {
     return !Number.isNaN(appointmentDateTime.getTime()) && appointmentDateTime > now;
   };
 
-  const upcomingBookings = bookings.filter(
-    (booking) =>
-      isUpcomingBooking(booking) &&
-      booking.status === "confirmed"
-  );
+  const upcomingBookings = bookings.filter(isUpcomingBooking);
 
   const filteredBookings = upcomingBookings.filter((booking) => {
     const matchesSearch = [
@@ -724,13 +711,13 @@ function AdminPage() {
     return matchesSearch && matchesFilter;
   });
 
-  const todayBookings = upcomingBookings.filter(
-    (booking) =>
-      String(booking.appointment_date).slice(0, 10) === today &&
-      booking.status === "confirmed"
-  );
+  // Appuntamenti di oggi e prenotazioni confermate: solo quelle ancora da svolgere.
   const activeBookings = upcomingBookings.filter(
     (booking) => booking.status === "confirmed"
+  );
+
+  const todayBookings = activeBookings.filter(
+    (booking) => String(booking.appointment_date).slice(0, 10) === today
   );
 
   const styles = {
@@ -792,7 +779,7 @@ function AdminPage() {
         <section style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))", gap: "16px", margin: "28px 0" }}>
           <div style={styles.card}><p style={styles.muted}>Appuntamenti di oggi</p><strong style={{ fontSize: "34px" }}>{todayBookings.length}</strong></div>
           <div style={styles.card}><p style={styles.muted}>Prenotazioni confermate</p><strong style={{ fontSize: "34px" }}>{activeBookings.length}</strong></div>
-          <div style={styles.card}><p style={styles.muted}>Prenotazioni future</p><strong style={{ fontSize: "34px" }}>{upcomingBookings.length}</strong></div>
+          <div style={styles.card}><p style={styles.muted}>Prenotazioni future confermate</p><strong style={{ fontSize: "34px" }}>{activeBookings.length}</strong></div>
         </section>
 
         <section style={styles.card}>
